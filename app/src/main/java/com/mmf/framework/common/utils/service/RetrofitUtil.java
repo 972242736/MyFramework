@@ -28,7 +28,7 @@ public class RetrofitUtil {
     private static final String API_HOST = SecretConstant.API_HOST;
     private static Retrofit retrofit;
 
-    public static Retrofit getRetrofit() {
+    public static Retrofit getRetrofit(String url) {
         if (retrofit == null) {
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
                 @Override
@@ -51,7 +51,7 @@ public class RetrofitUtil {
                     .build();
             retrofit = new Retrofit.Builder()
                     .client(client)
-                    .baseUrl(API_HOST)
+                    .baseUrl(url)
                     .addConverterFactory(GsonConverterFactory.create())
                     .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                     .build();

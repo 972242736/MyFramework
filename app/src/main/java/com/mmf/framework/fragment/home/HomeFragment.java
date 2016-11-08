@@ -53,7 +53,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void getLawyer() {
-        presenter.getLawyer();
+//        presenter.getLawyer();
     }
 
     @Override

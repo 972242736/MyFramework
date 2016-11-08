@@ -1,6 +1,7 @@
 package com.mmf.framework.service.home;
 
 import com.mmf.framework.common.utils.service.RetrofitUtil;
+import com.mmf.framework.common.utils.service.SecretConstant;
 import com.mmf.framework.model.LawyerInfo;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public class HomeService extends RetrofitUtil {
     private static HomeServiceApi homeService;
     public static HomeServiceApi getService() {
         if (homeService == null) {
-            homeService = getRetrofit().create(HomeServiceApi.class);
+            homeService = getRetrofit(SecretConstant.API_HOST).create(HomeServiceApi.class);
         }
         return homeService;
     }
