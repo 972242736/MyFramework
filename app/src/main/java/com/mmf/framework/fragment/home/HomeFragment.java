@@ -63,7 +63,7 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     @Override
-    public void setList(List<LawyerInfo> list) {
+    public void setList(List list) {
         adapter.setItems(list);
     }
 }

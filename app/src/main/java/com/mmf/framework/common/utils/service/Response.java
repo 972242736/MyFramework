@@ -5,10 +5,14 @@ public class Response<T> {
 
     public String error_code;
     public String reason;
-    public T result;
+//    public T result;
+    public T contents;
+    private String status;
+    private int total;
+    private int size;
 
 
     public boolean isSuccess() {
-        return error_code.equals(Constant.OK);
+        return status.equals(Constant.OK)||error_code.equals(Constant.OK);
     }
 }

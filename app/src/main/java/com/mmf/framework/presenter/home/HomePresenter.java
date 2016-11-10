@@ -3,6 +3,7 @@ package com.mmf.framework.presenter.home;
 import android.content.Context;
 import android.util.Log;
 
+import com.mmf.framework.baidu.bean.PositionInfo;
 import com.mmf.framework.model.LawyerInfo;
 import com.mmf.framework.base.presenter.BasePresenter;
 import com.mmf.framework.service.home.HomeService;
@@ -43,6 +44,24 @@ public class HomePresenter extends BasePresenter {
                 .subscribe(newSubscriber(new Action1<List<LawyerInfo>>() {
                     @Override
                     public void call(List<LawyerInfo> remindDTOs) {
+                        Log.i(TAG, "getNotification---" + remindDTOs.toString());
+                    }
+                }));
+        mCompositeSubscription.add(subscription);
+    }
+    public void getInfo(String loc) {
+        showLoadingDialog();
+        Subscription subscription = mHomeService.getInfo(loc)
+                .doOnNext(new Action1<List<PositionInfo>>() {
+                    @Override
+                    public void call(List<PositionInfo> remindDTOs) {
+                        List<PositionInfo> remindDTOs_ = remindDTOs;
+                        view.setList(remindDTOs);
+                    }
+                })
+                .subscribe(newSubscriber(new Action1<List<PositionInfo>>() {
+                    @Override
+                    public void call(List<PositionInfo> remindDTOs) {
                         Log.i(TAG, "getNotification---" + remindDTOs.toString());
                     }
                 }));

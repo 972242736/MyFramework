@@ -9,6 +9,6 @@ import java.util.List;
  * date 2016/9/26
  * Description:
  */
-public interface IHomeView {
-    void setList(List<LawyerInfo> list);
+public interface IHomeView<T> {
+    void setList(List<T> list);
 }

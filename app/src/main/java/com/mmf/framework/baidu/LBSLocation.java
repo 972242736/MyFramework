@@ -31,7 +31,7 @@ public class LBSLocation {
     private LBSLocation(MyApplication app) {
         mLocationClient = new LocationClient(app);
         mLocationClient.registerLocationListener(myListener);
-        mLocationClient.start();
+
     }
 
     /**
@@ -45,7 +45,7 @@ public class LBSLocation {
         option.disableCache(true);// 禁止启用缓存定位
         mLocationClient.setLocOption(option);
         mLocationClient.requestLocation();
-
+        mLocationClient.start();
     }
 
     /**

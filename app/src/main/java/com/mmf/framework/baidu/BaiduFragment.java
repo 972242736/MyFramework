@@ -1,13 +1,19 @@
 package com.mmf.framework.baidu;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.baidu.mapapi.cloud.CloudRgcResult;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
@@ -24,23 +30,33 @@ import com.baidu.mapapi.search.poi.PoiResult;
 import com.baidu.mapapi.search.poi.PoiSearch;
 import com.mmf.framework.MyApplication;
 import com.mmf.framework.R;
+import com.mmf.framework.baidu.bean.PositionInfo;
+import com.mmf.framework.model.LawyerInfo;
+import com.mmf.framework.presenter.home.HomePresenter;
+import com.mmf.framework.view.home.IHomeView;
+
+import java.util.List;
 
 /**
  * Created by MMF
  * date 2016/9/24
  * Description:
  */
-public class BaiduFragment extends Fragment {
+public class BaiduFragment extends Fragment implements IHomeView {
     private View view;
     MapView mMapView = null;
     TextView tvCity = null;
     PoiSearch mKSearch;
     private BaiduMap mBaiduMap;
+    private int REQUEST_CONTACTS = 1;
+    private LatLng latLng;
+    private List<PositionInfo> listPos;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.baidu_fragment, null);
+        MyApplication.getInstance().setBaiduFragment(this);
         initView();
         return view;
     }
@@ -48,87 +64,109 @@ public class BaiduFragment extends Fragment {
     private void initView() {
         mMapView = (MapView) view.findViewById(R.id.bmapView);
         tvCity = (TextView) view.findViewById(R.id.tv_city);
-
-//        mBaiduMap.clear();
-//        OverlayIcon ov = new OverlayIcon(null, this);
-//        for (ContentModel content : list) {
-//            int latitude = (int) (content.getLatitude() * 1000000);
-//            int longitude = (int) (content.getLongitude() * 1000000);
-//
-//            Drawable d = getResources().getDrawable(R.drawable.icon_marka);
-//            OverlayItem item = new OverlayItem(
-//                    new GeoPoint(latitude, longitude), content.getName(),
-//                    content.getAddr());
-//            item.setMarker(d);
-//
-//            ov.addItem(item);
-//        }
-//        mMapView.getOverlays().add(ov);
-//        mMapView.refresh();
-        MyApplication.getInstance().setBaiduFragment(this);
-        if (MyApplication.getInstance().getCurrlocation() != null) {
-            setCity();
+        mBaiduMap = mMapView.getMap();
+        if (Build.VERSION.SDK_INT >= 23) {
+            showContacts();
+        } else {
+            if (MyApplication.getInstance().getCurrlocation() != null) {
+                latLng = new LatLng(MyApplication.getInstance().getCurrlocation().getLatitude(), MyApplication.getInstance().getCurrlocation().getLongitude());
+                setCity(latLng);
+            }
         }
-
         mKSearch = PoiSearch.newInstance();
-        mKSearch.setOnGetPoiSearchResultListener(new OnGetPoiSearchResultListener() {
-            @Override
-            public void onGetPoiResult(PoiResult poiResult) {
-                System.out.print("poiResult------------"+poiResult);
-//                LatLng point = new LatLng(poiResult.getAllPoi().get(0).getgetLatitude(), poiResult.getLongitude());
-
-//                MapStatusUpdate u = MapStatusUpdateFactory.newLatLngZoom(point, 16);
-                //设置地图中心点以及缩放级别
-//              MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(ll);
-//                mBaiduMap.animateMapStatus(u);
-            }
-
-            @Override
-            public void onGetPoiDetailResult(PoiDetailResult poiDetailResult) {
-
-            }
-
-            @Override
-            public void onGetPoiIndoorResult(PoiIndoorResult poiIndoorResult) {
-
-            }
-        });
+        PoiSearchResultListener listener = new PoiSearchResultListener();
+        listener.setFragment(this);
+        mKSearch.setOnGetPoiSearchResultListener(listener);
         view.findViewById(R.id.btn_click).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View arg0) {
-                // TODO Auto-generated method stub
-                PoiCitySearchOption poiCitySearchOption = new PoiCitySearchOption()
-                        .city("厦门")
-                        .keyword("厦门");
-                mKSearch.searchInCity(poiCitySearchOption);
+//                PoiCitySearchOption poiCitySearchOption = new PoiCitySearchOption()
+//                        .city("厦门")
+//                        .keyword("厦门");
+//                mKSearch.searchInCity(poiCitySearchOption);
+                HomePresenter presenter = new HomePresenter(BaiduFragment.this, getActivity());
+                presenter.getInfo(latLng.longitude + "," + latLng.latitude);
             }
         });
     }
 
-    public void setCity() {
-        tvCity.setText(MyApplication.getInstance().getCurrlocation().getCity());
-        String ss = MyApplication.getInstance().getCurrlocation().getCity();
-        Double dfsd = MyApplication.getInstance().getCurrlocation().getLatitude();
-        mBaiduMap = mMapView.getMap();
-        //定义Maker坐标点
-        LatLng point = new LatLng(MyApplication.getInstance().getCurrlocation().getLatitude(), MyApplication.getInstance().getCurrlocation().getLongitude());
 
+    public void setCity(LatLng point) {
+        latLng = point;
+        tvCity.setText(MyApplication.getInstance().getCurrlocation().getCity());
         MapStatusUpdate u = MapStatusUpdateFactory.newLatLngZoom(point, 16);
-         //设置地图中心点以及缩放级别
-//              MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(ll);
+        //设置地图中心点以及缩放级别
+        //MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(ll);
         mBaiduMap.animateMapStatus(u);
-// /构建Marker图标
+        //构建Marker图标
         BitmapDescriptor bitmap = BitmapDescriptorFactory
                 .fromResource(R.drawable.icon_marka);
-//构建MarkerOption，用于在地图上添加Marker
+        //构建MarkerOption，用于在地图上添加Marker
         MarkerOptions option = new MarkerOptions()
                 .position(point)
                 .icon(bitmap);
-//在地图上添加Marker，并显示
+    //在地图上添加Marker，并显示
         mBaiduMap.addOverlay(option);
     }
 
+
+    /**
+     * 6.0以上版本的权限问题相关方法
+     */
+    public void showContacts() {
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestContactsPermissions();
+
+        } else {
+            LBSLocation.getInstance(MyApplication.getInstance()).startLocation();
+        }
+    }
+
+    private void requestContactsPermissions() {
+        String[] strings = {Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_PHONE_STATE};
+        ActivityCompat.requestPermissions(getActivity(), strings, REQUEST_CONTACTS);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        if (requestCode == REQUEST_CONTACTS) {
+            if (verifyPermissions(grantResults)) {
+                LBSLocation.getInstance(MyApplication.getInstance()).startLocation();
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    public static boolean verifyPermissions(int[] grantResults) {
+        if (grantResults.length < 1) {
+            return false;
+        }
+
+        // Verify that each required permission has been granted, otherwise return false.
+        for (int result : grantResults) {
+            if (result != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 6.0以上版本的权限问题相关方法--结束
+     */
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -148,5 +186,14 @@ public class BaiduFragment extends Fragment {
         super.onPause();
         //在activity执行onPause时执行mMapView. onPause ()，实现地图生命周期管理
         mMapView.onPause();
+    }
+
+    @Override
+    public void setList(List list) {
+        listPos = list;
+        for(PositionInfo item :listPos){
+            LatLng latLng = new LatLng(item.getLocation().get(1),item.getLocation().get(0));
+            setCity(latLng);
+        }
     }
 }

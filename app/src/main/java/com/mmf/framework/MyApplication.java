@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.baidu.location.BDLocation;
 import com.baidu.mapapi.SDKInitializer;
+import com.baidu.mapapi.model.LatLng;
 import com.mmf.framework.baidu.BaiduFragment;
 import com.mmf.framework.baidu.LBSLocation;
 
@@ -45,7 +46,8 @@ public class MyApplication extends Application {
 
     public void setCurrlocation(BDLocation currlocation) {
         if (baiduFragment != null)
-            baiduFragment.setCity();
+            baiduFragment.setCity(new LatLng(currlocation.getLatitude(), currlocation.getLongitude()));
         this.currlocation = currlocation;
     }
+
 }

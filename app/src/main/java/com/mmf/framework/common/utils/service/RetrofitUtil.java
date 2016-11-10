@@ -73,7 +73,7 @@ public class RetrofitUtil {
             public void call(Subscriber<? super T> subscriber) {
                 if (response.isSuccess()) {
                     if (!subscriber.isUnsubscribed()) {
-                        subscriber.onNext(response.result);
+                        subscriber.onNext(response.contents);
                     }
                 } else {
                     if (!subscriber.isUnsubscribed()) {
