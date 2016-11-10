@@ -1,12 +1,8 @@
 package com.mmf.framework.baidu;
 
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,18 +11,19 @@ import android.widget.TextView;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.MapStatusUpdate;
+import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MarkerOptions;
-import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
+import com.baidu.mapapi.search.poi.PoiCitySearchOption;
+import com.baidu.mapapi.search.poi.PoiDetailResult;
+import com.baidu.mapapi.search.poi.PoiIndoorResult;
+import com.baidu.mapapi.search.poi.PoiResult;
+import com.baidu.mapapi.search.poi.PoiSearch;
 import com.mmf.framework.MyApplication;
 import com.mmf.framework.R;
-import com.mmf.framework.adapter.home.LawyerAdapter;
-import com.mmf.framework.model.LawyerInfo;
-import com.mmf.framework.presenter.home.HomePresenter;
-import com.mmf.framework.view.home.IHomeView;
-
-import java.util.List;
 
 /**
  * Created by MMF
@@ -37,6 +34,8 @@ public class BaiduFragment extends Fragment {
     private View view;
     MapView mMapView = null;
     TextView tvCity = null;
+    PoiSearch mKSearch;
+    private BaiduMap mBaiduMap;
 
     @Nullable
     @Override
@@ -71,16 +70,55 @@ public class BaiduFragment extends Fragment {
             setCity();
         }
 
+        mKSearch = PoiSearch.newInstance();
+        mKSearch.setOnGetPoiSearchResultListener(new OnGetPoiSearchResultListener() {
+            @Override
+            public void onGetPoiResult(PoiResult poiResult) {
+                System.out.print("poiResult------------"+poiResult);
+//                LatLng point = new LatLng(poiResult.getAllPoi().get(0).getgetLatitude(), poiResult.getLongitude());
+
+//                MapStatusUpdate u = MapStatusUpdateFactory.newLatLngZoom(point, 16);
+                //设置地图中心点以及缩放级别
+//              MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(ll);
+//                mBaiduMap.animateMapStatus(u);
+            }
+
+            @Override
+            public void onGetPoiDetailResult(PoiDetailResult poiDetailResult) {
+
+            }
+
+            @Override
+            public void onGetPoiIndoorResult(PoiIndoorResult poiIndoorResult) {
+
+            }
+        });
+        view.findViewById(R.id.btn_click).setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View arg0) {
+                // TODO Auto-generated method stub
+                PoiCitySearchOption poiCitySearchOption = new PoiCitySearchOption()
+                        .city("厦门")
+                        .keyword("厦门");
+                mKSearch.searchInCity(poiCitySearchOption);
+            }
+        });
     }
 
     public void setCity() {
         tvCity.setText(MyApplication.getInstance().getCurrlocation().getCity());
         String ss = MyApplication.getInstance().getCurrlocation().getCity();
         Double dfsd = MyApplication.getInstance().getCurrlocation().getLatitude();
-        BaiduMap mBaiduMap = mMapView.getMap();
+        mBaiduMap = mMapView.getMap();
         //定义Maker坐标点
         LatLng point = new LatLng(MyApplication.getInstance().getCurrlocation().getLatitude(), MyApplication.getInstance().getCurrlocation().getLongitude());
-//构建Marker图标
+
+        MapStatusUpdate u = MapStatusUpdateFactory.newLatLngZoom(point, 16);
+         //设置地图中心点以及缩放级别
+//              MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(ll);
+        mBaiduMap.animateMapStatus(u);
+// /构建Marker图标
         BitmapDescriptor bitmap = BitmapDescriptorFactory
                 .fromResource(R.drawable.icon_marka);
 //构建MarkerOption，用于在地图上添加Marker
